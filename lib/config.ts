@@ -6,6 +6,10 @@
 export const SITE_NAME = "PrivatePDF";
 export const SITE_URL = "https://privatepdfapp.vercel.app";
 export const CHECKOUT_URL = "https://example.com/checkout";
+// Flip to true once CHECKOUT_URL points at the real payment link.
+// While false, Pro buttons render as disabled "Coming soon" instead of
+// linking anywhere.
+export const CHECKOUT_READY = false;
 
 // Free-plan limits. Files or batches beyond these show the Pro upsell.
 export const FREE_MAX_FILE_MB = 50;

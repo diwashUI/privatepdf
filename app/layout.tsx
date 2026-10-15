@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { SITE_NAME } from "@/lib/config";
-
+import { SITE_NAME, SITE_URL } from "@/lib/config";
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
@@ -11,7 +10,7 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 const YEAR = new Date().getFullYear();
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://privatepdf.app"),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "PrivatePDF — Free PDF Tools That Never Upload Your Files",
     template: "%s | PrivatePDF",

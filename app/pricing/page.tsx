@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Faq from "@/components/Faq";
-import { CHECKOUT_URL } from "@/lib/config";
+import { CHECKOUT_URL, CHECKOUT_READY } from "@/lib/config";
 
 export const metadata: Metadata = {
-  title: "Pricing — Free PDF Tools, $29 Pro | PrivatePDF",
+  title: "Pricing — Free PDF Tools, $29 Pro",
   description:
     "PrivatePDF is free for everyday PDF tasks. Pro unlocks batch processing, larger files, and priority speed for a single $29 payment — still 100% private.",
 };
@@ -98,12 +98,18 @@ export default function PricingPage() {
               </li>
             ))}
           </ul>
-          <a
-            href={CHECKOUT_URL}
-            className="mt-8 block rounded-full bg-blue-600 py-3 text-center text-sm font-semibold text-white transition hover:bg-blue-700"
-          >
-            Go Pro
-          </a>
+          {CHECKOUT_READY ? (
+            <a
+              href={CHECKOUT_URL}
+              className="mt-8 block rounded-full bg-blue-600 py-3 text-center text-sm font-semibold text-white transition hover:bg-blue-700"
+            >
+              Go Pro
+            </a>
+          ) : (
+            <span className="mt-8 block cursor-not-allowed rounded-full bg-slate-200 py-3 text-center text-sm font-semibold text-slate-500">
+              Pro checkout opening soon
+            </span>
+          )}
         </div>
       </div>
 
