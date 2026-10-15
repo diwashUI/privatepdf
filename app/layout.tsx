@@ -21,6 +21,9 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     type: "website",
   },
+  other: {
+    "color-scheme": "light",
+  },
 };
 
 const TOOLS = [

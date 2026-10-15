@@ -3,6 +3,9 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  /* The site is light-only: stop browsers from auto-darkening it (Chrome's
+     "auto dark mode" mangles light designs and breaks text contrast). */
+  color-scheme: light;
 }
 
 @theme inline {
