@@ -4,7 +4,7 @@
 // (LemonSqueezy / Gumroad / Stripe) before launching paid Pro.
 
 export const SITE_NAME = "PrivatePDF";
-export const SITE_URL = "https://privatepdf.app";
+export const SITE_URL = "https://privatepdfapp.vercel.app";
 export const CHECKOUT_URL = "https://example.com/checkout";
 
 // Free-plan limits. Files or batches beyond these show the Pro upsell.
