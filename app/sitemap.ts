@@ -1,9 +1,10 @@
 import type { MetadataRoute } from "next";
+import { SITE_URL } from "@/lib/config";
 
 const ROUTES = ["", "/merge", "/split", "/compress", "/images-to-pdf", "/pdf-to-images", "/rotate", "/pricing"];
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = "https://privatepdf.app";
+  const base = SITE_URL;
   const now = new Date();
   return ROUTES.map((r) => ({
     url: `${base}${r}`,
