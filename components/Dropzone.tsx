@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 
 interface DropzoneProps {
   accept: string;
@@ -14,19 +14,28 @@ interface DropzoneProps {
 export default function Dropzone({ accept, multiple = false, onFiles, title, subtitle }: DropzoneProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
+  const noteId = useId();
 
   const handleFiles = (list: FileList | null) => {
     if (!list) return;
     onFiles([...list]);
   };
 
+  const openPicker = () => inputRef.current?.click();
+
   return (
     <div
       role="button"
       tabIndex={0}
-      aria-label={title}
-      onClick={() => inputRef.current?.click()}
-      onKeyDown={(e) => e.key === "Enter" && inputRef.current?.click()}
+      aria-label={`${title}. ${subtitle ?? ""}`}
+      aria-describedby={noteId}
+      onClick={openPicker}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          openPicker();
+        }
+      }}
       onDragOver={(e) => {
         e.preventDefault();
         setDragging(true);
@@ -49,6 +58,8 @@ export default function Dropzone({ accept, multiple = false, onFiles, title, sub
         accept={accept}
         multiple={multiple}
         className="hidden"
+        aria-hidden
+        tabIndex={-1}
         onChange={(e) => {
           handleFiles(e.target.files);
           e.target.value = "";
@@ -70,7 +81,7 @@ export default function Dropzone({ accept, multiple = false, onFiles, title, sub
       </svg>
       <p className="mt-4 text-lg font-semibold text-slate-900">{title}</p>
       {subtitle && <p className="mt-1 text-sm text-slate-500">{subtitle}</p>}
-      <p className="mt-3 text-xs text-slate-400">
+      <p id={noteId} className="mt-3 text-xs text-slate-400">
         Your files stay on this device — nothing is uploaded.
       </p>
     </div>

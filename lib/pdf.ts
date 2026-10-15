@@ -1,4 +1,4 @@
-import { PDFDocument, degrees, StandardFonts } from "pdf-lib";
+import { PDFDocument, degrees, StandardFonts, rgb } from "pdf-lib";
 
 /**
  * Pure PDF manipulation functions (pdf-lib only — runs in Node and browser).
@@ -99,4 +99,87 @@ export async function makeSamplePdf(pages: number, label = "Sample"): Promise<Ui
     page.drawText(`${label} — page ${i + 1}`, { x: 72, y: 720, size: 24, font });
   }
   return doc.save();
+}
+
+export interface WatermarkOptions {
+  text: string;
+  opacity: number; // 0..1
+  size: number; // font size in pt
+  diagonal: boolean;
+}
+
+/** Stamp text (e.g. DRAFT, CONFIDENTIAL) across every page. */
+export async function watermarkPdf(
+  pdfBytes: Uint8Array | ArrayBuffer,
+  opts: WatermarkOptions
+): Promise<Uint8Array> {
+  if (!opts.text.trim()) throw new Error("Enter the watermark text first.");
+  const opacity = Math.min(0.9, Math.max(0.05, opts.opacity));
+  const size = Math.min(200, Math.max(8, Math.round(opts.size)));
+  const doc = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
+  const font = await doc.embedFont(StandardFonts.HelveticaBold);
+  for (const page of doc.getPages()) {
+    const { width, height } = page.getSize();
+    const textWidth = font.widthOfTextAtSize(opts.text, size);
+    page.drawText(opts.text, {
+      x: width / 2 - textWidth / 2,
+      y: height / 2,
+      size,
+      font,
+      color: rgb(0.45, 0.45, 0.45),
+      opacity,
+      rotate: degrees(opts.diagonal ? 45 : 0),
+    });
+  }
+  return doc.save();
+}
+
+export type PageNumberPosition =
+  | "bottom-left"
+  | "bottom-center"
+  | "bottom-right"
+  | "top-left"
+  | "top-center"
+  | "top-right";
+
+export interface PageNumberOptions {
+  start: number; // number printed on the first page
+  size: number; // font size in pt
+  position: PageNumberPosition;
+}
+
+/** Print "Page N" on every page at the chosen position. */
+export async function addPageNumbers(
+  pdfBytes: Uint8Array | ArrayBuffer,
+  opts: PageNumberOptions
+): Promise<Uint8Array> {
+  const size = Math.min(72, Math.max(8, Math.round(opts.size)));
+  const start = Math.max(1, Math.floor(opts.start) || 1);
+  const doc = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
+  const font = await doc.embedFont(StandardFonts.Helvetica);
+  doc.getPages().forEach((page, i) => {
+    const { width, height } = page.getSize();
+    const label = `Page ${start + i}`;
+    const textWidth = font.widthOfTextAtSize(label, size);
+    const margin = 36;
+    const x = opts.position.endsWith("left")
+      ? margin
+      : opts.position.endsWith("right")
+        ? width - margin - textWidth
+        : width / 2 - textWidth / 2;
+    const y = opts.position.startsWith("top") ? height - margin : margin;
+    page.drawText(label, { x, y, size, font, color: rgb(0.35, 0.35, 0.35) });
+  });
+  return doc.save();
+}
+
+/**
+ * Join per-page extracted text into a readable .txt document.
+ * Pure helper — safe to unit test in Node.
+ */
+export function formatExtractedText(pages: string[], fileName: string): string {
+  const base = fileName.replace(/\.pdf$/i, "") || "document";
+  const header = `Text extracted from ${base}\n${"=".repeat(40)}`;
+  const body = pages.map((t, i) => `\n\n--- Page ${i + 1} ---\n\n${t.trim()}`).join("");
+  return `${header}${body}\n`;
 }

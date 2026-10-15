@@ -8,6 +8,10 @@ import {
   rotatePages,
   imagesToPdf,
   makeSamplePdf,
+  watermarkPdf,
+  addPageNumbers,
+  formatExtractedText,
+  type PageNumberPosition,
 } from "./pdf";
 
 // 1x1 transparent PNG (valid for pdf-lib's PNG parser)
@@ -127,5 +131,76 @@ describe("makeSamplePdf", () => {
     expect(doc.getPageCount()).toBe(2);
     // sanity: rotation helper type-checks against pdf-lib's degrees()
     expect(degrees(90).angle).toBe(90);
+  });
+});
+
+describe("watermarkPdf", () => {
+  it("keeps the same page count", async () => {
+    const out = await watermarkPdf(await makeSamplePdf(3), {
+      text: "DRAFT",
+      opacity: 0.3,
+      size: 48,
+      diagonal: true,
+    });
+    expect(await getPageCount(out)).toBe(3);
+  });
+
+  it("works horizontally and clamps extreme sizes", async () => {
+    const out = await watermarkPdf(await makeSamplePdf(1), {
+      text: "CONFIDENTIAL",
+      opacity: 2, // clamped to 0.9
+      size: 999, // clamped to 200
+      diagonal: false,
+    });
+    expect(await getPageCount(out)).toBe(1);
+  });
+
+  it("throws on empty watermark text", async () => {
+    await expect(
+      watermarkPdf(await makeSamplePdf(1), { text: "   ", opacity: 0.3, size: 48, diagonal: true })
+    ).rejects.toThrow("watermark text");
+  });
+});
+
+describe("addPageNumbers", () => {
+  it("keeps the page count for every position", async () => {
+    const positions: PageNumberPosition[] = [
+      "bottom-left",
+      "bottom-center",
+      "bottom-right",
+      "top-left",
+      "top-center",
+      "top-right",
+    ];
+    for (const position of positions) {
+      const out = await addPageNumbers(await makeSamplePdf(2), { start: 1, size: 12, position });
+      expect(await getPageCount(out)).toBe(2);
+    }
+  });
+
+  it("respects a custom start number without throwing", async () => {
+    const out = await addPageNumbers(await makeSamplePdf(2), {
+      start: 10,
+      size: 14,
+      position: "bottom-right",
+    });
+    expect(await getPageCount(out)).toBe(2);
+  });
+});
+
+describe("formatExtractedText", () => {
+  it("joins pages with readable headers", () => {
+    const txt = formatExtractedText(["hello", "world"], "report.pdf");
+    expect(txt).toContain("Text extracted from report");
+    expect(txt).toContain("--- Page 1 ---");
+    expect(txt).toContain("hello");
+    expect(txt).toContain("--- Page 2 ---");
+    expect(txt).toContain("world");
+  });
+
+  it("handles empty pages and non-pdf names", () => {
+    const txt = formatExtractedText(["", "x"], "scan");
+    expect(txt).toContain("--- Page 1 ---");
+    expect(txt).toContain("Text extracted from scan");
   });
 });

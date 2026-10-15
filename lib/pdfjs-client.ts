@@ -51,3 +51,22 @@ export async function getPdfPageCount(data: Uint8Array | ArrayBuffer): Promise<n
     await doc.cleanup();
   }
 }
+
+/** Extract the plain text of every page, in page order. */
+export async function extractPdfText(data: Uint8Array | ArrayBuffer): Promise<string[]> {
+  const doc = await loadDoc(data);
+  try {
+    const out: string[] = [];
+    for (let p = 1; p <= doc.numPages; p++) {
+      const page = await doc.getPage(p);
+      const content = await page.getTextContent();
+      const text = content.items
+        .map((it) => ("str" in it ? (it as { str: string }).str : ""))
+        .join(" ");
+      out.push(text.replace(/\s+/g, " ").trim());
+    }
+    return out;
+  } finally {
+    await doc.cleanup();
+  }
+}

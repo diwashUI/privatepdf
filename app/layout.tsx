@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     template: "%s | PrivatePDF",
   },
   description:
-    "Merge, split, compress, rotate and convert PDFs 100% in your browser. Your files never leave your device — no uploads, no sign-up, free.",
+    "Merge, split, compress, watermark, number pages, rotate and convert PDFs 100% in your browser. Your files never leave your device — no uploads, no sign-up, free.",
   openGraph: {
     siteName: SITE_NAME,
     type: "website",
@@ -30,6 +30,9 @@ const TOOLS = [
   { href: "/images-to-pdf", label: "Images to PDF" },
   { href: "/pdf-to-images", label: "PDF to Images" },
   { href: "/rotate", label: "Rotate PDF" },
+  { href: "/watermark", label: "Watermark" },
+  { href: "/page-numbers", label: "Page Numbers" },
+  { href: "/extract-text", label: "Extract Text" },
 ];
 
 function Logo() {  return (
@@ -51,12 +54,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/85 backdrop-blur-md">
           <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
             <Logo />
-            <nav className="hidden items-center gap-1 md:flex" aria-label="PDF tools">
+            <nav className="hidden max-w-3xl flex-wrap items-center justify-end gap-1 lg:flex" aria-label="PDF tools">
               {TOOLS.map((t) => (
                 <Link
                   key={t.href}
                   href={t.href}
-                  className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
+                  className="inline-flex min-h-[44px] items-center whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
                 >
                   {t.label}
                 </Link>
@@ -69,12 +72,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               Pricing
             </Link>
           </div>
-          <nav className="flex gap-1 overflow-x-auto border-t border-slate-100 px-4 py-2 md:hidden" aria-label="PDF tools mobile">
+          <nav className="flex gap-1 overflow-x-auto border-t border-slate-100 px-4 py-2 lg:hidden" aria-label="PDF tools mobile">
             {TOOLS.map((t) => (
               <Link
                 key={t.href}
                 href={t.href}
-                className="whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100"
+                className="inline-flex min-h-[44px] items-center whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100"
               >
                 {t.label}
               </Link>
@@ -94,10 +97,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
             <nav aria-label="Tools">
               <p className="text-sm font-semibold text-slate-900">Tools</p>
-              <ul className="mt-3 space-y-2 text-sm text-slate-500">
+              <ul className="mt-3 columns-2 gap-6 space-y-2 text-sm text-slate-500">
                 {TOOLS.map((t) => (
-                  <li key={t.href}>
-                    <Link href={t.href} className="hover:text-slate-900">{t.label}</Link>
+                  <li key={t.href} className="break-inside-avoid">
+                    <Link href={t.href} className="inline-flex min-h-[44px] items-center hover:text-slate-900">{t.label}</Link>
                   </li>
                 ))}
               </ul>
@@ -105,9 +108,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <nav aria-label="Company">
               <p className="text-sm font-semibold text-slate-900">PrivatePDF</p>
               <ul className="mt-3 space-y-2 text-sm text-slate-500">
-                <li><Link href="/pricing" className="hover:text-slate-900">Pricing</Link></li>
-                <li><Link href="/#privacy" className="hover:text-slate-900">How privacy works</Link></li>
-                <li><Link href="/#faq" className="hover:text-slate-900">FAQ</Link></li>
+                <li><Link href="/pricing" className="inline-flex min-h-[44px] items-center hover:text-slate-900">Pricing</Link></li>
+                <li><Link href="/#faq" className="inline-flex min-h-[44px] items-center hover:text-slate-900">FAQ</Link></li>
               </ul>
             </nav>
           </div>

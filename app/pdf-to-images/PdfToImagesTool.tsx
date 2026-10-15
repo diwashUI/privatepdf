@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Dropzone from "@/components/Dropzone";
+import LiveRegion from "@/components/LiveRegion";
+import Options from "@/components/Options";
 import { ProGate, formatMB } from "@/components/ProGate";
 import { getPageCount } from "@/lib/pdf";
 import { renderPageToDataUrl } from "@/lib/pdfjs-client";
@@ -15,6 +17,7 @@ export default function PdfToImagesTool() {
   const [progress, setProgress] = useState("");
   const [images, setImages] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState("");
 
   const load = async (incoming: File[]) => {
     const f = incoming[0];
@@ -25,8 +28,11 @@ export default function PdfToImagesTool() {
     try {
       const pages = await getPageCount(bytes);
       setFile({ name: f.name, size: f.size, bytes, pages });
+      setStatus(`Loaded ${f.name}, ${pages} pages.`);
     } catch {
-      setError(`"${f.name}" could not be read as a PDF.`);
+      const msg = `"${f.name}" could not be read as a PDF.`;
+      setError(msg);
+      setStatus(`Error: ${msg}`);
     }
   };
 
@@ -46,14 +52,19 @@ export default function PdfToImagesTool() {
     try {
       const out: string[] = [];
       for (let p = 1; p <= file.pages; p++) {
-        setProgress(`Rendering page ${p} of ${file.pages}…`);
+        const msg = `Rendering page ${p} of ${file.pages}…`;
+        setProgress(msg);
+        setStatus(msg);
         await new Promise((r) => setTimeout(r, 0));
         out.push(await renderPageToDataUrl(file.bytes, p, scale, "image/png"));
       }
       setImages(out);
       setProgress("");
+      setStatus(`Done — ${out.length} images ready below.`);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Conversion failed.");
+      const msg = e instanceof Error ? e.message : "Conversion failed.";
+      setError(msg);
+      setStatus(`Error: ${msg}`);
       setProgress("");
     } finally {
       setBusy(false);
@@ -71,7 +82,8 @@ export default function PdfToImagesTool() {
     return (
       <div>
         <Dropzone accept="application/pdf,.pdf" onFiles={load} title="Drop your PDF here" subtitle="or click to browse" />
-        {error && <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
+        {error && <p role="alert" className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
+        <LiveRegion message={status} />
       </div>
     );
   }
@@ -80,44 +92,51 @@ export default function PdfToImagesTool() {
 
   return (
     <div>
-      <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4">
+      <LiveRegion message={status} />
+      <div className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4">
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold text-slate-900">{file.name}</p>
           <p className="text-xs text-slate-500">{file.pages} pages · {formatMB(file.size)}</p>
         </div>
-        <button onClick={() => { setFile(null); setImages([]); }} className="text-sm font-medium text-slate-500 hover:text-slate-800">
+        <button onClick={() => { setFile(null); setImages([]); setStatus(""); }} className="inline-flex min-h-[44px] shrink-0 items-center text-sm font-medium text-slate-500 hover:text-slate-800">
           Choose another
         </button>
       </div>
 
-      <div className="mt-6 flex flex-wrap items-center gap-3">
-        <div className="flex rounded-xl border border-slate-300 p-1" role="radiogroup" aria-label="Resolution">
-          {[1, 2].map((s) => (
-            <button
-              key={s}
-              onClick={() => setScale(s)}
-              aria-pressed={scale === s}
-              className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${scale === s ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-100"}`}
-            >
-              {s}x
-            </button>
-          ))}
-        </div>
+      <Options>
+        <fieldset>
+          <legend className="text-sm font-semibold text-slate-900">Resolution</legend>
+          <div className="mt-2 inline-flex rounded-xl border border-slate-300 p-1" role="radiogroup" aria-label="Resolution">
+            {[1, 2].map((s) => (
+              <button
+                key={s}
+                onClick={() => setScale(s)}
+                aria-pressed={scale === s}
+                className={`inline-flex min-h-[44px] items-center rounded-lg px-5 text-sm font-semibold transition ${scale === s ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-100"}`}
+              >
+                {s}x {s === 1 ? "(smaller)" : "(sharper)"}
+              </button>
+            ))}
+          </div>
+        </fieldset>
+      </Options>
+
+      <div className="mt-6">
         <button
           onClick={convert}
           disabled={busy}
-          className="rounded-full bg-blue-600 px-8 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-40"
+          className="inline-flex min-h-[44px] items-center rounded-full bg-blue-600 px-8 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-40"
         >
           {busy ? "Converting…" : `Convert ${file.pages} page${file.pages === 1 ? "" : "s"} to PNG`}
         </button>
-        {busy && progress && <p className="w-full text-sm text-slate-600">{progress}</p>}
+        {busy && progress && <p className="mt-3 w-full text-sm text-slate-600">{progress}</p>}
       </div>
 
       {images.length > 0 && (
         <div className="mt-6">
           <div className="mb-3 flex items-center justify-between">
             <p className="text-sm font-semibold text-slate-900">{images.length} images ready</p>
-            <button onClick={downloadAll} className="rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white hover:bg-slate-700">
+            <button onClick={downloadAll} className="inline-flex min-h-[44px] items-center rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white hover:bg-slate-700">
               Download all
             </button>
           </div>
@@ -127,7 +146,7 @@ export default function PdfToImagesTool() {
                 <img src={url} alt={`Page ${i + 1} of ${file.name}`} className="aspect-[3/4] w-full object-cover" />
                 <button
                   onClick={() => downloadDataUrl(url, `${base}-page-${i + 1}.png`)}
-                  className="w-full border-t border-slate-100 py-2 text-sm font-semibold text-blue-600 hover:bg-blue-50"
+                  className="inline-flex min-h-[44px] w-full items-center justify-center border-t border-slate-100 py-2 text-sm font-semibold text-blue-600 hover:bg-blue-50"
                 >
                   Download page {i + 1}
                 </button>
@@ -136,7 +155,7 @@ export default function PdfToImagesTool() {
           </div>
         </div>
       )}
-      {error && <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
+      {error && <p role="alert" className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
     </div>
   );
 }

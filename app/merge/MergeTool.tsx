@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Dropzone from "@/components/Dropzone";
+import LiveRegion from "@/components/LiveRegion";
 import { ProGate, formatMB } from "@/components/ProGate";
 import { mergePdfs, getPageCount } from "@/lib/pdf";
 import { renderPageToDataUrl } from "@/lib/pdfjs-client";
@@ -23,12 +24,15 @@ export default function MergeTool() {
   const [files, setFiles] = useState<PdfFile[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState("");
 
   const addFiles = async (incoming: File[]) => {
     setError(null);
     const pdfs = incoming.filter((f) => f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf"));
     if (pdfs.length === 0) {
-      setError("Please choose PDF files.");
+      const msg = "Please choose PDF files.";
+      setError(msg);
+      setStatus(`Error: ${msg}`);
       return;
     }
     const next: PdfFile[] = [];
@@ -40,12 +44,18 @@ export default function MergeTool() {
         pages = await getPageCount(bytes);
         thumb = await renderPageToDataUrl(bytes, 1, 0.35, "image/jpeg", 0.7);
       } catch {
-        setError(`"${f.name}" could not be read as a PDF.`);
+        const msg = `"${f.name}" could not be read as a PDF.`;
+        setError(msg);
+        setStatus(`Error: ${msg}`);
         continue;
       }
       next.push({ id: `${Date.now()}-${uid++}`, name: f.name, size: f.size, bytes, pages, thumb });
     }
-    setFiles((prev) => [...prev, ...next]);
+    setFiles((prev) => {
+      const total = prev.length + next.length;
+      setStatus(`${total} file${total === 1 ? "" : "s"} ready. Add more or merge.`);
+      return [...prev, ...next];
+    });
   };
 
   const move = (i: number, dir: -1 | 1) => {
@@ -79,12 +89,16 @@ export default function MergeTool() {
   const merge = async () => {
     setBusy(true);
     setError(null);
+    setStatus(`Merging ${files.length} files…`);
     try {
       await new Promise((r) => setTimeout(r, 30)); // let the UI paint the spinner
       const out = await mergePdfs(files.map((f) => f.bytes));
       downloadFile(out, "merged.pdf");
+      setStatus("Done — your merged PDF downloaded.");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Merging failed.");
+      const msg = e instanceof Error ? e.message : "Merging failed.";
+      setError(msg);
+      setStatus(`Error: ${msg}`);
     } finally {
       setBusy(false);
     }
@@ -92,6 +106,7 @@ export default function MergeTool() {
 
   return (
     <div>
+      <LiveRegion message={status} />
       {files.length === 0 ? (
         <Dropzone
           accept="application/pdf,.pdf"
@@ -118,9 +133,9 @@ export default function MergeTool() {
                   <p className="text-xs text-slate-500">{f.pages} pages · {formatMB(f.size)}</p>
                 </div>
                 <div className="flex items-center gap-1">
-                  <button onClick={() => move(i, -1)} disabled={i === 0} aria-label="Move up" className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 disabled:opacity-30">↑</button>
-                  <button onClick={() => move(i, 1)} disabled={i === files.length - 1} aria-label="Move down" className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 disabled:opacity-30">↓</button>
-                  <button onClick={() => remove(f.id)} aria-label={`Remove ${f.name}`} className="rounded-lg p-2 text-slate-500 hover:bg-red-50 hover:text-red-600">✕</button>
+                  <button onClick={() => move(i, -1)} disabled={i === 0} aria-label="Move up" className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 disabled:opacity-30">↑</button>
+                  <button onClick={() => move(i, 1)} disabled={i === files.length - 1} aria-label="Move down" className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 disabled:opacity-30">↓</button>
+                  <button onClick={() => remove(f.id)} aria-label={`Remove ${f.name}`} className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-slate-500 hover:bg-red-50 hover:text-red-600">✕</button>
                 </div>
               </li>
             ))}
@@ -129,15 +144,15 @@ export default function MergeTool() {
             <button
               onClick={merge}
               disabled={busy || files.length < 2}
-              className="rounded-full bg-blue-600 px-8 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-40"
+              className="inline-flex min-h-[44px] items-center rounded-full bg-blue-600 px-8 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-40"
             >
               {busy ? "Merging…" : `Merge ${files.length} PDFs`}
             </button>
-            <label className="cursor-pointer rounded-full border border-slate-300 px-6 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+            <label className="inline-flex min-h-[44px] cursor-pointer items-center rounded-full border border-slate-300 px-6 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
               Add more
               <input type="file" accept="application/pdf,.pdf" multiple className="hidden" onChange={(e) => { if (e.target.files) addFiles([...e.target.files]); e.target.value = ""; }} />
             </label>
-            <button onClick={() => setFiles([])} className="text-sm font-medium text-slate-500 hover:text-slate-800">
+            <button onClick={() => { setFiles([]); setStatus(""); }} className="inline-flex min-h-[44px] items-center text-sm font-medium text-slate-500 hover:text-slate-800">
               Start over
             </button>
           </div>
@@ -146,7 +161,7 @@ export default function MergeTool() {
           )}
         </div>
       )}
-      {error && <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
+      {error && <p role="alert" className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
     </div>
   );
 }

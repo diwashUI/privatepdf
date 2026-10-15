@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Dropzone from "@/components/Dropzone";
+import LiveRegion from "@/components/LiveRegion";
 import { ProGate } from "@/components/ProGate";
 import { imagesToPdf, ImageInput } from "@/lib/pdf";
 import { downloadFile } from "@/lib/download";
@@ -21,6 +22,7 @@ export default function ImagesToPdfTool() {
   const [images, setImages] = useState<Img[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState("");
 
   const addFiles = async (incoming: File[]) => {
     setError(null);
@@ -35,7 +37,11 @@ export default function ImagesToPdfTool() {
       const bytes = new Uint8Array(await f.arrayBuffer());
       next.push({ id: `${Date.now()}-${uid++}`, name: f.name, bytes, type, url: URL.createObjectURL(f) });
     }
-    setImages((prev) => [...prev, ...next]);
+    setImages((prev) => {
+      const total = prev.length + next.length;
+      if (total > 0) setStatus(`${total} image${total === 1 ? "" : "s"} ready. Arrange the order, then create your PDF.`);
+      return [...prev, ...next];
+    });
   };
 
   const move = (i: number, dir: -1 | 1) => {
@@ -66,13 +72,17 @@ export default function ImagesToPdfTool() {
   const create = async () => {
     setBusy(true);
     setError(null);
+    setStatus(`Creating a PDF from ${images.length} images…`);
     try {
       await new Promise((r) => setTimeout(r, 30));
       const inputs: ImageInput[] = images.map((i) => ({ bytes: i.bytes, type: i.type }));
       const out = await imagesToPdf(inputs);
       downloadFile(out, "images.pdf");
+      setStatus("Done — your PDF downloaded.");
     } catch {
-      setError("Could not create the PDF. One of the images may be corrupt.");
+      const msg = "Could not create the PDF. One of the images may be corrupt.";
+      setError(msg);
+      setStatus(`Error: ${msg}`);
     } finally {
       setBusy(false);
     }
@@ -80,6 +90,7 @@ export default function ImagesToPdfTool() {
 
   return (
     <div>
+      <LiveRegion message={status} />
       {images.length === 0 ? (
         <Dropzone
           accept="image/jpeg,image/png,.jpg,.jpeg,.png"
@@ -98,9 +109,9 @@ export default function ImagesToPdfTool() {
                   {i + 1}
                 </span>
                 <div className="flex items-center justify-center gap-1 border-t border-slate-100 p-1">
-                  <button onClick={() => move(i, -1)} disabled={i === 0} aria-label="Move earlier" className="rounded p-1.5 text-slate-500 hover:bg-slate-100 disabled:opacity-30">←</button>
-                  <button onClick={() => move(i, 1)} disabled={i === images.length - 1} aria-label="Move later" className="rounded p-1.5 text-slate-500 hover:bg-slate-100 disabled:opacity-30">→</button>
-                  <button onClick={() => remove(img.id)} aria-label={`Remove ${img.name}`} className="rounded p-1.5 text-slate-500 hover:bg-red-50 hover:text-red-600">✕</button>
+                  <button onClick={() => move(i, -1)} disabled={i === 0} aria-label="Move earlier" className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-slate-500 hover:bg-slate-100 disabled:opacity-30">←</button>
+                  <button onClick={() => move(i, 1)} disabled={i === images.length - 1} aria-label="Move later" className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-slate-500 hover:bg-slate-100 disabled:opacity-30">→</button>
+                  <button onClick={() => remove(img.id)} aria-label={`Remove ${img.name}`} className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-slate-500 hover:bg-red-50 hover:text-red-600">✕</button>
                 </div>
               </div>
             ))}
@@ -109,21 +120,21 @@ export default function ImagesToPdfTool() {
             <button
               onClick={create}
               disabled={busy}
-              className="rounded-full bg-blue-600 px-8 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-40"
+              className="inline-flex min-h-[44px] items-center rounded-full bg-blue-600 px-8 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-40"
             >
               {busy ? "Creating…" : `Create PDF from ${images.length} image${images.length === 1 ? "" : "s"}`}
             </button>
-            <label className="cursor-pointer rounded-full border border-slate-300 px-6 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+            <label className="inline-flex min-h-[44px] cursor-pointer items-center rounded-full border border-slate-300 px-6 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
               Add more
               <input type="file" accept="image/jpeg,image/png,.jpg,.jpeg,.png" multiple className="hidden" onChange={(e) => { if (e.target.files) addFiles([...e.target.files]); e.target.value = ""; }} />
             </label>
-            <button onClick={() => { images.forEach((x) => URL.revokeObjectURL(x.url)); setImages([]); }} className="text-sm font-medium text-slate-500 hover:text-slate-800">
+            <button onClick={() => { images.forEach((x) => URL.revokeObjectURL(x.url)); setImages([]); setStatus(""); }} className="inline-flex min-h-[44px] items-center text-sm font-medium text-slate-500 hover:text-slate-800">
               Start over
             </button>
           </div>
         </div>
       )}
-      {error && <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
+      {error && <p role="alert" className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
     </div>
   );
 }
