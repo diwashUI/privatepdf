@@ -113,6 +113,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <ul className="mt-3 space-y-2 text-sm text-slate-500">
                 <li><Link href="/pricing" className="inline-flex min-h-[44px] items-center hover:text-slate-900">Pricing</Link></li>
                 <li><Link href="/#faq" className="inline-flex min-h-[44px] items-center hover:text-slate-900">FAQ</Link></li>
+                <li><Link href="/terms" className="inline-flex min-h-[44px] items-center hover:text-slate-900">Terms of Service</Link></li>
+                <li><Link href="/privacy" className="inline-flex min-h-[44px] items-center hover:text-slate-900">Privacy Policy</Link></li>
+                <li><Link href="/refund" className="inline-flex min-h-[44px] items-center hover:text-slate-900">Refund Policy</Link></li>
+                <li><a href="mailto:itsaurevya@gmail.com" className="inline-flex min-h-[44px] items-center hover:text-slate-900">Contact</a></li>
               </ul>
             </nav>
           </div>
