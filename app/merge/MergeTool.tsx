@@ -8,6 +8,7 @@ import { mergePdfs, getPageCount } from "@/lib/pdf";
 import { renderPageToDataUrl } from "@/lib/pdfjs-client";
 import { downloadFile } from "@/lib/download";
 import { FREE_MAX_FILE_MB, FREE_MAX_MERGE_FILES } from "@/lib/config";
+import { isPro } from "@/lib/pro";
 
 interface PdfFile {
   id: string;
@@ -70,7 +71,7 @@ export default function MergeTool() {
 
   const remove = (id: string) => setFiles((prev) => prev.filter((f) => f.id !== id));
 
-  const oversized = files.find((f) => f.size > FREE_MAX_FILE_MB * 1024 * 1024);
+  const oversized = !isPro() ? files.find((f) => f.size > FREE_MAX_FILE_MB * 1024 * 1024) : undefined;
   if (oversized) {
     return (
       <ProGate
@@ -78,7 +79,7 @@ export default function MergeTool() {
       />
     );
   }
-  if (files.length > FREE_MAX_MERGE_FILES) {
+  if (!isPro() && files.length > FREE_MAX_MERGE_FILES) {
     return (
       <ProGate
         reason={`You added ${files.length} files. The free plan merges up to ${FREE_MAX_MERGE_FILES} files per batch — Pro merges unlimited files at once.`}

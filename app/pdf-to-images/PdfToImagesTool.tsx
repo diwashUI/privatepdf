@@ -9,6 +9,7 @@ import { getPageCount } from "@/lib/pdf";
 import { renderPageToDataUrl } from "@/lib/pdfjs-client";
 import { downloadDataUrl } from "@/lib/download";
 import { FREE_MAX_FILE_MB } from "@/lib/config";
+import { isPro } from "@/lib/pro";
 
 export default function PdfToImagesTool() {
   const [file, setFile] = useState<{ name: string; size: number; bytes: Uint8Array; pages: number } | null>(null);
@@ -36,7 +37,7 @@ export default function PdfToImagesTool() {
     }
   };
 
-  if (file && file.size > FREE_MAX_FILE_MB * 1024 * 1024) {
+  if (!isPro() && file && file.size > FREE_MAX_FILE_MB * 1024 * 1024) {
     return (
       <ProGate
         reason={`"${file.name}" is ${formatMB(file.size)}. The free plan handles files up to ${FREE_MAX_FILE_MB}MB — Pro removes the limit.`}

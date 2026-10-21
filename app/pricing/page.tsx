@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Faq from "@/components/Faq";
-import { CHECKOUT_URL, CHECKOUT_READY } from "@/lib/config";
+import { CHECKOUT_READY } from "@/lib/config";
+import ProCheckoutButton from "@/components/ProCheckoutButton";
 
 export const metadata: Metadata = {
   title: "Pricing — Free PDF Tools, $29 Pro",
@@ -99,12 +100,7 @@ export default function PricingPage() {
             ))}
           </ul>
           {CHECKOUT_READY ? (
-            <a
-              href={CHECKOUT_URL}
-              className="mt-8 block rounded-full bg-blue-600 py-3 text-center text-sm font-semibold text-white transition hover:bg-blue-700"
-            >
-              Go Pro
-            </a>
+            <ProCheckoutButton className="mt-8 block w-full rounded-full bg-blue-600 py-3 text-center text-sm font-semibold text-white transition hover:bg-blue-700" />
           ) : (
             <span className="mt-8 block cursor-not-allowed rounded-full bg-slate-200 py-3 text-center text-sm font-semibold text-slate-500">
               Pro checkout opening soon

@@ -8,6 +8,7 @@ import { getPageCount } from "@/lib/pdf";
 import { extractPdfText } from "@/lib/pdfjs-client";
 import { formatExtractedText } from "@/lib/pdf";
 import { FREE_MAX_FILE_MB } from "@/lib/config";
+import { isPro } from "@/lib/pro";
 
 interface LoadedFile {
   name: string;
@@ -40,7 +41,7 @@ export default function ExtractTextTool() {
     }
   };
 
-  if (file && file.size > FREE_MAX_FILE_MB * 1024 * 1024) {
+  if (!isPro() && file && file.size > FREE_MAX_FILE_MB * 1024 * 1024) {
     return (
       <ProGate
         reason={`"${file.name}" is ${formatMB(file.size)}. The free plan handles files up to ${FREE_MAX_FILE_MB}MB — Pro removes the limit.`}

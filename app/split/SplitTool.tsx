@@ -7,6 +7,7 @@ import { ProGate, formatMB } from "@/components/ProGate";
 import { splitPdf, getPageCount, parsePageRanges } from "@/lib/pdf";
 import { downloadFile } from "@/lib/download";
 import { FREE_MAX_FILE_MB } from "@/lib/config";
+import { isPro } from "@/lib/pro";
 
 export default function SplitTool() {
   const [file, setFile] = useState<{ name: string; size: number; bytes: Uint8Array; pages: number } | null>(null);
@@ -56,7 +57,7 @@ export default function SplitTool() {
     }
   };
 
-  if (file && file.size > FREE_MAX_FILE_MB * 1024 * 1024) {
+  if (!isPro() && file && file.size > FREE_MAX_FILE_MB * 1024 * 1024) {
     return (
       <ProGate
         reason={`"${file.name}" is ${formatMB(file.size)}. The free plan handles files up to ${FREE_MAX_FILE_MB}MB — Pro removes the limit.`}

@@ -9,6 +9,7 @@ import { rotatePages, getPageCount, parsePageRanges } from "@/lib/pdf";
 import { renderPageToDataUrl } from "@/lib/pdfjs-client";
 import { downloadFile } from "@/lib/download";
 import { FREE_MAX_FILE_MB } from "@/lib/config";
+import { isPro } from "@/lib/pro";
 
 const ROTATIONS = [
   { id: "cw", label: "90° clockwise", value: 90 },
@@ -44,7 +45,7 @@ export default function RotateTool() {
     }
   };
 
-  if (file && file.size > FREE_MAX_FILE_MB * 1024 * 1024) {
+  if (!isPro() && file && file.size > FREE_MAX_FILE_MB * 1024 * 1024) {
     return (
       <ProGate
         reason={`"${file.name}" is ${formatMB(file.size)}. The free plan handles files up to ${FREE_MAX_FILE_MB}MB — Pro removes the limit.`}

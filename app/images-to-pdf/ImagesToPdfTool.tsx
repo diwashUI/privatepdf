@@ -4,6 +4,7 @@ import { useState } from "react";
 import Dropzone from "@/components/Dropzone";
 import LiveRegion from "@/components/LiveRegion";
 import { ProGate } from "@/components/ProGate";
+import { isPro } from "@/lib/pro";
 import { imagesToPdf, ImageInput } from "@/lib/pdf";
 import { downloadFile } from "@/lib/download";
 
@@ -61,7 +62,7 @@ export default function ImagesToPdfTool() {
       return prev.filter((x) => x.id !== id);
     });
 
-  if (images.length > FREE_MAX_IMAGES) {
+  if (!isPro() && images.length > FREE_MAX_IMAGES) {
     return (
       <ProGate
         reason={`You added ${images.length} images. The free plan converts up to ${FREE_MAX_IMAGES} images per PDF — Pro converts unlimited images at once.`}

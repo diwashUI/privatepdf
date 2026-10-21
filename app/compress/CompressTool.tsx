@@ -10,6 +10,7 @@ import { getPageCount } from "@/lib/pdf";
 import { renderPageToDataUrl } from "@/lib/pdfjs-client";
 import { downloadFile } from "@/lib/download";
 import { FREE_MAX_FILE_MB } from "@/lib/config";
+import { isPro } from "@/lib/pro";
 
 const QUALITIES = [
   { id: "high", label: "High", desc: "Good quality, moderate savings", scale: 1.6, jpeg: 0.82 },
@@ -51,7 +52,7 @@ export default function CompressTool() {
     }
   };
 
-  if (file && file.size > FREE_MAX_FILE_MB * 1024 * 1024) {
+  if (!isPro() && file && file.size > FREE_MAX_FILE_MB * 1024 * 1024) {
     return (
       <ProGate
         reason={`"${file.name}" is ${formatMB(file.size)}. The free plan handles files up to ${FREE_MAX_FILE_MB}MB — Pro removes the limit.`}

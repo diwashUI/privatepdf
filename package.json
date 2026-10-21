@@ -10,6 +10,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@paddle/paddle-js": "^1.6.5",
     "next": "16.4.1",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^6.4.299",

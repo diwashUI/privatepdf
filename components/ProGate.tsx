@@ -1,6 +1,7 @@
 "use client";
 
-import { CHECKOUT_URL, CHECKOUT_READY } from "@/lib/config";
+import { CHECKOUT_READY } from "@/lib/config";
+import ProCheckoutButton from "@/components/ProCheckoutButton";
 
 /** Upsell card shown when free-plan limits are exceeded. */
 export function ProGate({ reason }: { reason: string }) {
@@ -10,12 +11,7 @@ export function ProGate({ reason }: { reason: string }) {
       <h3 className="mt-2 text-xl font-bold text-slate-900">This needs Pro</h3>
       <p className="mx-auto mt-2 max-w-md text-sm text-slate-600">{reason}</p>
       {CHECKOUT_READY ? (
-        <a
-          href={CHECKOUT_URL}
-          className="mt-5 inline-block rounded-full bg-blue-600 px-7 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
-        >
-          Go Pro — $29 one-time
-        </a>
+        <ProCheckoutButton className="mt-5 inline-block rounded-full bg-blue-600 px-7 py-3 text-sm font-semibold text-white transition hover:bg-blue-700" />
       ) : (
         <span className="mt-5 inline-block cursor-not-allowed rounded-full bg-slate-200 px-7 py-3 text-sm font-semibold text-slate-500">
           Pro checkout opening soon

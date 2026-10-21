@@ -8,6 +8,7 @@ import { ProGate, formatMB } from "@/components/ProGate";
 import { watermarkPdf, getPageCount } from "@/lib/pdf";
 import { downloadFile } from "@/lib/download";
 import { FREE_MAX_FILE_MB } from "@/lib/config";
+import { isPro } from "@/lib/pro";
 
 interface LoadedFile {
   name: string;
@@ -44,7 +45,7 @@ export default function WatermarkTool() {
     }
   };
 
-  if (file && file.size > FREE_MAX_FILE_MB * 1024 * 1024) {
+  if (!isPro() && file && file.size > FREE_MAX_FILE_MB * 1024 * 1024) {
     return (
       <ProGate
         reason={`"${file.name}" is ${formatMB(file.size)}. The free plan handles files up to ${FREE_MAX_FILE_MB}MB — Pro removes the limit.`}

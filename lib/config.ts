@@ -1,15 +1,17 @@
 // Central product configuration.
-//
-// CHECKOUT_URL is a PLACEHOLDER — wire it to the real payment link
-// (LemonSqueezy / Gumroad / Stripe) before launching paid Pro.
 
 export const SITE_NAME = "PrivatePDF";
 export const SITE_URL = "https://privatepdfapp.vercel.app";
-export const CHECKOUT_URL = "https://example.com/checkout";
-// Flip to true once CHECKOUT_URL points at the real payment link.
-// While false, Pro buttons render as disabled "Coming soon" instead of
-// linking anywhere.
-export const CHECKOUT_READY = false;
+
+// Paddle checkout (Paddle Billing). The client-side token is safe to expose
+// in frontend code per Paddle's docs; it only opens checkouts. Price ID is
+// the $29 one-time "PrivatePDF Pro" price created in the Paddle dashboard.
+export const PADDLE_CLIENT_TOKEN = "live_93531bd281ba80072bd3c787392";
+export const PADDLE_PRICE_ID = "pri_01m5ep3vadnf75wwhtmh1wydhb";
+// Flip to true once PADDLE_CLIENT_TOKEN holds the real live_ token from
+// Paddle > My account > Settings > Authentication. While false, Pro buttons
+// render as disabled "Coming soon" instead of opening checkout.
+export const CHECKOUT_READY = true;
 
 // Free-plan limits. Files or batches beyond these show the Pro upsell.
 export const FREE_MAX_FILE_MB = 50;
